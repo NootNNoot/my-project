@@ -49,7 +49,7 @@ For the project architecture, I used Ubuntu 24.04 and ROS 2 Jazzy as the operati
 
 ## System Architecture
 
-> **Note:** Insert images of the robot, Gazebo simulation, and controller pipeline here.
+![Robot Arm](images/robot.png)
 
 ### Robot Structure
 
@@ -141,14 +141,7 @@ $$
 
 The base controller then computed:
 
-$$
-\tau_{base} =
-g_{scale}\tau_g(q)
--
-D\dot{q}
-+
-\tau_{hold}
-$$
+$$\tau_{base} = g_{scale}\tau_g(q) - D\dot{q} + \tau_{hold}$$
 
 where:
 
@@ -177,6 +170,14 @@ base_link → joint1 → joint2 → joint3 → joint4 → joint5 → joint6 → 
 This allowed the gravity model to include the mass and inertia of the passive pendulum. Even though the pendulum joint was not directly actuated, its mass still affected the torques required by the arm.
 
 The final implementation computed gravity torques through the full arm-pendulum chain but only published the first six torques corresponding to the actuated arm joints.
+
+#### Results from Gravity Compensation Controller
+
+Joint Angles during test run:
+
+![GC Joint Angles](images/pure_gc.png)
+
+![GC Video](videos/gc_video.gif)
 
 ---
 
@@ -208,16 +209,7 @@ This became one of the most important parts of the project. Without accurate gra
 
 After basic gravity compensation, I introduced proportional-derivative balancing logic to try to stabilize the goal joints. The first balancing controller used the following PD law:
 
-$$
-u =
--k_p\theta_p
--
-k_d\dot{\theta}_p
--
-k_{j6}\theta_{j6}
--
-k_{dj6}\dot{\theta}_{j6}
-$$
+$$u =-k_p\theta_p-k_d\dot{\theta}_p-k_{j6}\theta_{j6}-k_{dj6}\dot{\theta}_{j6}$$
 
 where:
 
@@ -228,27 +220,11 @@ where:
 
 The resulting balancing action was distributed across multiple arm joints with the largest influence on pendulum motion:
 
-$$
-\tau_{balance}
-=
-\begin{bmatrix}
-0.15u &
-0.35u &
-0.35u &
-0 &
-0 &
-0.05u
-\end{bmatrix}^T
-$$
+$$\tau_{balance}=\begin{bmatrix}0.15u &0.35u &0.35u &0 &0 &0.05u\end{bmatrix}^T$$
 
 The full torque command was then:
 
-$$
-\tau =
-\tau_{base}
-+
-\tau_{balance}
-$$
+$$\tau =\tau_{base}+\tau_{balance}$$
 
 This controller was simple, but it helped reveal useful properties of the system.
 
@@ -269,6 +245,14 @@ This highlighted a fundamental limitation of the hand-tuned PD approach:
 - A single fixed-gain PD controller struggled to handle both regimes.
 
 ---
+
+#### PD Results
+
+![PD Angles](images/lqr_only_pd.png)
+
+![PD Video](videos/pd_video.gif)
+
+![PD Front](videos/pd_video_front.gif)
 
 ## Transition to LQR
 
@@ -295,21 +279,11 @@ where:
 
 The LQR control law is:
 
-$$
-u_k = -Kx_k
-$$
+$$u_k = -Kx_k$$
 
 where $K$ is chosen to minimize the quadratic cost function:
 
-$$
-J =
-\sum_{k=0}^{\infty}
-\left(
-x_k^T Q x_k
-+
-u_k^T R u_k
-\right)
-$$
+$$J =\sum_{k=0}^{\infty}\left(x_k^T Q x_k+u_k^T R u_k\right)$$
 
 Here:
 
@@ -317,6 +291,20 @@ Here:
 - $R$ penalizes control effort.
 - Larger values in $Q$ force the controller to care more about those state variables.
 - Larger values in $R$ discourage large torque commands.
+
+
+#### LQR Results
+
+LQR Balance Scale = 1.0:
+![LQR 1](images/lqr_balance_scale_1.png)
+
+![LQR 1 Video](videos/lqr1.gif)
+
+LQR Balance Scale = 0.1:
+![LQR 0.1](images/lqr_balance_scale_01.png)
+
+![LQR 0.1 Video](videos/lqr01.gif)
+
 
 ---
 
@@ -335,7 +323,7 @@ Pinocchio was used for:
 The LQR generation script implemented:
 
 - Automatic state extraction
-- Finite-difference linearization
+- -difference linearization
 - Discrete-time system generation
 - Riccati equation solving
 - Gain matrix export to a `.npy` file
@@ -346,57 +334,23 @@ The LQR generation script implemented:
 
 The linearized matrices $A$ and $B$ were estimated numerically. For each state perturbation, the script computed:
 
-$$
-A_i =
-\frac{
-f(x + \epsilon e_i, u)
--
-f(x - \epsilon e_i, u)
-}{
-2\epsilon
-}
-$$
+$$A_i =\frac{f(x + \epsilon e_i, u)-f(x - \epsilon e_i, u)}{2\epsilon}$$
 
 For each input perturbation, the script computed:
 
-$$
-B_j =
-\frac{
-f(x, u + \epsilon e_j)
--
-f(x, u - \epsilon e_j)
-}{
-2\epsilon
-}
-$$
+$$B_j =\frac{f(x, u + \epsilon e_j)-f(x, u - \epsilon e_j)}{2\epsilon}$$
 
 This produced:
 
-$$
-A \in \mathbb{R}^{14 \times 14}
-$$
+$$A \in \mathbb{R}^{14 \times 14}$$
 
 and:
 
-$$
-B \in \mathbb{R}^{14 \times 6}
-$$
+$$B \in \mathbb{R}^{14 \times 6}$$
 
 The system was linearized around the nominal configuration:
 
-$$
-q_{nom}
-=
-\begin{bmatrix}
-0 &
-0.79 &
-0.79 &
-0 &
-0 &
-0 &
-0
-\end{bmatrix}^T
-$$
+$$q_{nom}=\begin{bmatrix}0 &0.79 &0.79 &0 &0 &0 &0\end{bmatrix}^T$$
 
 This corresponds to the six arm joints plus the passive pendulum joint.
 
@@ -408,19 +362,11 @@ To compute the LQR gain matrix $K$, the project solved the Discrete-Time Algebra
 
 The Riccati equation produces the matrix $P$, which is then used to compute:
 
-$$
-K =
-\left(
-B^T P B + R
-\right)^{-1}
-B^T P A
-$$
+$$K =\left(B^T P B + R\right)^{-1}B^T P A$$
 
 The final gain matrix had the shape:
 
-$$
-K \in \mathbb{R}^{6 \times 14}
-$$
+$$K \in \mathbb{R}^{6 \times 14}$$
 
 This maps the 14-dimensional state vector to six arm joint torques.
 
@@ -434,12 +380,7 @@ Several challenges appeared during LQR gain generation:
 
 One major issue was that Pinocchio represented some continuous revolute joints internally using:
 
-$$
-\begin{bmatrix}
-\cos(\theta) &
-\sin(\theta)
-\end{bmatrix}
-$$
+$$\begin{bmatrix}\cos(\theta) &\sin(\theta)\end{bmatrix}$$
 
 instead of storing the angle directly. This caused an initial mismatch between the expected state dimension and the actual configuration representation. After correcting the state extraction logic, the script successfully generated a valid LQR gain matrix.
 
