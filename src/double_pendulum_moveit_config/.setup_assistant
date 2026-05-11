@@ -1,0 +1,27 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: arm_description
+    relative_path: urdf/double_pendulum.urdf.xacro
+  srdf:
+    relative_path: config/double_pendulum.srdf
+  package_settings:
+    author_name: kacper
+    author_email: kacpergasior19@gmail.com
+    generated_timestamp: 1774762078
+  control_xacro:
+    command:
+      - position
+      - velocity
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+      - velocity
+    state:
+      - position
+      - velocity

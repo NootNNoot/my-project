@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<robot name="double_pendulum" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="common_properties.xacro" />
+    <xacro:include filename="arm.xacro" />
+    <xacro:include filename="gripper.xacro" />
+    <xacro:include filename="double_pendulum.ros2_control.xacro"/>
+
+    <!-- <joint name="pendulum_joint_1" type="revolute">
+        <parent link="tool_link"/>
+        <child link="pendulum_link_1"/>
+        <origin xyz="0 0 0" rpy="0 1.5707 3.14159"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-3.14159" upper="3.14159" effort="1000.0" velocity="1.0"/>
+        <dynamics damping="0.0001" friction="0.0"/>
+    </joint> -->
+
+    <joint name="pendulum_joint_1" type="fixed">
+        <parent link="tool_link"/>
+        <child link="pendulum_link_1"/>
+        <origin rpy="0 1.5707 3.14159" xyz="0 0 0"/>
+    </joint>
+
+    <gazebo>
+        <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin"
+                filename="libgz_ros2_control-system">
+            <robot_param>robot_description</robot_param>
+            <robot_param_node>robot_state_publisher</robot_param_node>
+            <parameters>$(find double_pendulum_bringup)/config/ros2_controllers.yaml</parameters>
+        </plugin>
+        <plugin filename="libreset_joints_plugin.so"
+                name="double_pendulum_plugins::ResetJointsPlugin"/>
+    </gazebo>
+
+    
+
+
+</robot>

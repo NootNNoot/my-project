@@ -1,0 +1,73 @@
+<launch>
+
+    <let name="urdf_path"
+        value="$(find-pkg-share arm_description)/urdf/double_pendulum.urdf.xacro"/>
+
+    <let name="rviz_config_path"
+        value="$(find-pkg-share double_pendulum_bringup)/config/double_pendulum.rviz" />
+
+    <let name="sdf_path"
+         value="$(find-pkg-share double_pendulum_bringup)/config/test_world.sdf" />
+
+    <let name="lqr_gain_path"
+         value="$(find-pkg-share pendulum_controller)/config/lqr_gain.npy"/>
+
+    <set_parameter name="use_sim_time" value="true"/>
+
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+            value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+
+    <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
+        <arg name="gz_args" value="$(var sdf_path) -r"/>
+    </include>
+
+    <node pkg="ros_gz_bridge" exec="parameter_bridge"
+          args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
+          output="screen" />
+
+    <node pkg="controller_manager" exec="spawner" args="joint_state_broadcaster" />
+    <node pkg="controller_manager" exec="spawner" args="arm_effort_controller" />
+
+    <include file="$(find-pkg-share double_pendulum_moveit_config)/launch/move_group.launch.py">
+        <arg name="use_sim_time" value="true"/>
+    </include>
+
+    <node pkg="double_pendulum_commander" exec="commander_template" />
+
+    <node pkg="pendulum_controller" exec="pendulum_balancer"
+        output="screen" emulate_tty="true">
+
+        <param name="base_link" value="base_link"/>
+        <param name="tool_link" value="pendulum_link_2"/>
+
+        <param name="control_rate_hz" value="100.0"/>
+        <param name="torque_limit" value="100.0"/>
+
+        <param name="gravity_scale" value="1.0"/>
+        <param name="arm_damping_scale" value="1.5"/>
+
+        <param name="use_fixed_hold_pose" value="true"/>
+        <param name="hold_joint_positions" value="[0.0, 0.79, 0.79, 0.0, 0.0, 0.0]"/>
+        <param name="hold_kp" value="[2.0, 10.0, 10.0, 0.8, 0.8, 0.3]"/>
+
+        <param name="pendulum_upright_angle" value="0.0"/>
+
+        <param name="balance_scale" value="0.1"/>
+        <param name="kp_pend" value="8.0"/>
+        <param name="kd_pend" value="4.0"/>
+        <param name="kp_j6" value="1.0"/>
+        <param name="kd_j6" value="3.0"/>
+        <param name="balance_alpha" value="0.05"/>
+
+        <param name="use_lqr" value="true"/>
+        <param name="lqr_gain_path" value="$(var lqr_gain_path)"/>
+        <param name="lqr_scale" value="0.2"/>
+        <param name="lqr_alpha" value="0.2"/>
+        <param name="catch_pend_angle" value="0.35"/>
+        <param name="catch_pend_vel" value="3.0"/>
+
+    </node>
+
+</launch>

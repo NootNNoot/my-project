@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <link name="world"/>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.4 0.4 0.1"/>
+            </geometry>
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.4 0.4 0.1"/>
+            </geometry>
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        </collision>
+        <xacro:box_inertia m="10.0" x="0.4" y="0.4" z="0.1"
+                       o_xyz="0 0 0.05" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="shoulder_link">
+        <visual> 
+            <geometry>
+                <cylinder length="0.5" radius="0.1"/>
+            </geometry>
+            <origin xyz="0 0 .25" rpy="0 0 0"/>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size="0.2 0.2 0.5"/>
+            </geometry> 
+            <origin xyz="0 0 0.25" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="5.0" r="0.1" h="0.5"
+                                  o_xyz="0 0 0.25" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="arm_link">
+        <visual>
+            <geometry> 
+                <cylinder length="0.6" radius="0.05"/>
+            </geometry> 
+            <origin xyz="0 0 0.3" rpy="0 0 0"/>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size="0.1 0.1 0.6"/>
+            </geometry> 
+            <origin xyz="0 0 0.3" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="3.0" r="0.05" h="0.6"
+                                  o_xyz="0 0 0.3" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="elbow_link">
+        <visual>
+            <geometry> 
+                <cylinder length="0.1" radius="0.05"/>
+            </geometry> 
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size=".1 .1 .1"/>
+            </geometry> 
+            <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="1.0" r="0.05" h="0.1"
+                                  o_xyz="0 0 0.05" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="forearm_link">
+        <visual>
+            <geometry> 
+                <cylinder length="0.5" radius="0.05"/>
+            </geometry> 
+            <origin xyz="0 0 0.25" rpy="0 0 0"/>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size=".1 .1 .5"/>
+            </geometry> 
+            <origin xyz="0 0 0.25" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="3.0" r="0.05" h="0.5"
+                                  o_xyz="0 0 0.25" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="wrist_link">
+        <visual>
+            <geometry> 
+                <box size="0.1 0.1 0.05"/>
+            </geometry> 
+            <origin xyz="0 0 0.025" rpy="0 0 0"/>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size="0.1 0.1 0.05"/>
+            </geometry> 
+            <origin xyz="0 0 0.025" rpy="0 0 0"/>
+        </collision>
+        <xacro:box_inertia m="1.0" x="0.1" y="0.1" z="0.05" 
+                           o_xyz="0 0 0.025" o_rpy="0 0 0" />
+    </link>
+
+    <link name="hand_link">
+        <visual>
+            <geometry> 
+                <box size="0.1 0.1 0.02"/>
+            </geometry> 
+            <origin xyz="0 0 0.01" rpy="0 0 0"/>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <geometry> 
+                <box size="0.1 0.1 0.02"/>
+            </geometry> 
+            <origin xyz="0 0 0.01" rpy="0 0 0"/>
+        </collision>
+        <xacro:box_inertia m="1.0" x="0.1" y="0.1" z="0.02" 
+                           o_xyz="0 0 0.01" o_rpy="0 0 0" />
+    </link>
+
+    <link name="tool_link">
+    <xacro:box_inertia m="0.01" x="0.01" y="0.01" z="0.01"
+                       o_xyz="0 0 0.00" o_rpy="0 0 0"/>
+    </link>
+
+    <joint name="world_to_base" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="joint1" type="revolute">
+        <parent link="base_link"/>
+        <child link="shoulder_link"/>
+        <origin xyz="0 0 .1" rpy="0 0 0"/>
+        <axis xyz="0 0 1" />
+        <limit effort="1000.0" velocity="30.0" lower="-3.14" upper="3.14"/>
+    </joint>
+
+    <joint name="joint2" type="revolute">
+        <parent link="shoulder_link"/>
+        <child link="arm_link"/>
+        <origin xyz="0 0 0.5" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="1000.0" velocity="30.0" lower="-1.58" upper="1.58"/>
+    </joint>
+
+    <joint name="joint3" type="revolute">
+        <parent link="arm_link"/>
+        <child link="elbow_link"/>
+        <origin xyz="0 0 .6" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="1000.0" velocity="30.0" lower="-1.58" upper="1.58"/>
+    </joint>
+    
+    <joint name="joint4" type="revolute">
+        <parent link="elbow_link"/>
+        <child link="forearm_link"/>
+        <origin xyz="0 0 .1" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="1000.0" velocity="30.0" lower="-3.14" upper="3.14"/>
+    </joint>
+
+    <joint name="joint5" type="revolute">
+        <parent link="forearm_link"/>
+        <child link="wrist_link"/>
+        <origin xyz="0 0 .5" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="1000.0" velocity="30.0" lower="-3.14" upper="3.14"/>
+    </joint>
+
+    <joint name="joint6" type="revolute">
+        <parent link="wrist_link"/>
+        <child link="hand_link"/>
+        <origin xyz="0 0 .05" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="30.0"/>
+    </joint>
+
+    <joint name="hand_tool_joint" type="fixed">
+        <parent link="hand_link"/>
+        <child link="tool_link"/>
+        <origin xyz="0 0 .02" rpy="0 0 0"/>
+    </joint>
+
+
+</robot>

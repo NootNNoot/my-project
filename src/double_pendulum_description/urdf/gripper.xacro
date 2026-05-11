@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <link name="pendulum_link_1">
+        <visual>
+            <geometry>
+                <cylinder radius="0.01" length="0.3"/>
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="0 0 0.15" rpy="0 0 0"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.01" length="0.3"/>
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="0 0 0.15" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="0.15" r="0.01" h="0.3"
+                                  o_xyz="0 0 0.15" o_rpy="0 0 0"/>
+    </link>
+
+    <link name="pendulum_link_2">
+        <visual>
+            <geometry>
+                <cylinder radius="0.01" length="0.3"/>
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="0 0 0.15" rpy="0 0 0"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.01" length="0.3"/>
+            </geometry>
+            <material name="gray"/>
+            <origin xyz="0 0 0.15" rpy="0 0 0"/>
+        </collision>
+        <xacro:cylinder_z_inertia m="0.15" r="0.01" h="0.3"
+                                  o_xyz="0 0 0.15" o_rpy="0 0 0"/>
+    </link>
+
+    <joint name="pendulum_joint_2" type="continuous">
+        <parent link="pendulum_link_1"/>
+        <child link="pendulum_link_2"/>
+        <origin xyz="0 0 0.3" rpy="0 0 3.14159"/>
+        <axis xyz="1 0 0"/>
+        <limit effort="1000.0" velocity="10.0"/>
+        <dynamics damping="0.0001" friction="0.0"/>
+    </joint>
+
+</robot>
